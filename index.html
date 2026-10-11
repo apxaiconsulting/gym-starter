@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Gym">
+<meta name="format-detection" content="telephone=no">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<title>Gym Starter</title>
+<meta name="description" content="Beginner full-body workout tracker">
+<meta name="theme-color" content="#F4F4F6">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F4F4F6;--surf:#FFF;--s2:#EEEEF1;--s3:#E2E2E7;
+  --text:#0D1117;--muted:#6B7280;--muted2:#9CA3AF;
+  --accent:#FF6B35;--accent-soft:rgba(255,107,53,.12);--border:rgba(0,0,0,.07);
+  --sh:0 2px 14px rgba(0,0,0,.06);
+  --green:#10B981;--green-soft:rgba(16,185,129,.13);--red:#EF4444;--yellow:#F59E0B;
+  --sb:env(safe-area-inset-bottom,0px);--st:env(safe-area-inset-top,0px);
+  --nh:64px;
+}
+body.dark{
+  --bg:#0C0C0F;--surf:#161618;--s2:#1E1E22;--s3:#2A2A2F;
+  --text:#F0F0F0;--muted:#8A8A92;--muted2:#5A5A62;
+  --border:rgba(255,255,255,.07);--sh:0 2px 14px rgba(0,0,0,.4);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+html,body{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+html{overflow-x:hidden;}
+body{font-family:'Manrope',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);overscroll-behavior:none;overflow-x:hidden;min-height:100%;}
+button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:none;font-size:inherit;}
+input{font-family:inherit;color:inherit;}
+
+/* ── Header ── */
+header{position:sticky;top:0;z-index:20;background:var(--bg);padding:calc(14px + var(--st)) 16px 10px;display:flex;align-items:center;justify-content:space-between;max-width:560px;margin:0 auto;}
+.h-title{font-size:26px;font-weight:800;letter-spacing:-.04em;}
+.h-date{font-size:12px;font-weight:700;color:var(--muted);margin-top:2px;}
+.icon-btn{width:42px;height:42px;border-radius:14px;background:var(--surf);border:1px solid var(--border);font-size:18px;display:grid;place-items:center;flex-shrink:0;}
+
+main{max-width:560px;margin:0 auto;padding:4px 16px calc(var(--nh) + var(--sb) + 96px);}
+.tab{display:none;}.tab.on{display:block;}
+
+/* ── Day chips ── */
+.days{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;}
+.day{background:var(--surf);border:1.5px solid var(--border);border-radius:16px;padding:12px 6px 11px;text-align:center;position:relative;transition:.15s;}
+.day b{display:block;font-size:16px;font-weight:800;}
+.day small{display:block;font-size:10px;font-weight:700;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.04em;}
+.day.on{border-color:var(--accent);background:var(--accent-soft);}
+.day.on b{color:var(--accent);}
+.day .tick{position:absolute;top:-6px;right:-4px;width:20px;height:20px;border-radius:50%;background:var(--green);color:#fff;font-size:11px;font-weight:800;display:grid;place-items:center;}
+.day .next{position:absolute;top:-8px;left:10px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;background:var(--accent);color:#fff;padding:2px 7px;border-radius:8px;}
+
+.banner{background:var(--surf);border:1px solid var(--border);border-radius:18px;padding:12px 14px;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:14px;line-height:1.5;}
+.banner b{color:var(--text);}
+.banner.phase{border-color:var(--accent);background:var(--accent-soft);}
+
+.dayhead{margin-bottom:12px;}
+.dayhead h2{font-size:20px;font-weight:800;letter-spacing:-.03em;}
+.prog{display:flex;align-items:center;gap:10px;margin-top:8px;}
+.bar{flex:1;height:8px;border-radius:9px;background:var(--s3);overflow:hidden;}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:9px;transition:width .3s;}
+.bar.ok i{background:var(--green);}
+.prog span{font-size:12px;font-weight:800;color:var(--muted);min-width:64px;text-align:right;}
+
+/* ── Exercise cards ── */
+.ex{background:var(--surf);border:1px solid var(--border);border-radius:22px;box-shadow:var(--sh);margin-bottom:12px;overflow:hidden;}
+.exh{padding:14px 16px 10px;display:flex;gap:10px;align-items:flex-start;}
+.exh-main{flex:1;min-width:0;}
+.exn{font-size:16px;font-weight:800;letter-spacing:-.02em;}
+.exm{font-size:12px;font-weight:700;color:var(--muted);margin-top:3px;}
+.extgt{font-size:11.5px;font-weight:700;color:var(--accent);margin-top:3px;}
+.exlast{font-size:11.5px;font-weight:600;color:var(--muted2);margin-top:4px;}
+.up{display:inline-block;margin-top:7px;font-size:11.5px;font-weight:800;color:var(--green);background:var(--green-soft);padding:4px 9px;border-radius:9px;}
+.exc{font-size:12px;font-weight:800;color:var(--muted);background:var(--s2);padding:5px 9px;border-radius:10px;white-space:nowrap;}
+.ex.done .exc{background:var(--green);color:#fff;}
+.ex.done .sets{display:none;}
+.ex.done.open .sets{display:block;}
+.ex.done .exh{padding-bottom:14px;}
+
+.sets{padding:0 10px 10px;}
+.set,.set-hd{display:grid;grid-template-columns:16px minmax(0,1.15fr) minmax(0,1fr) 46px;gap:6px;align-items:center;padding:5px 4px;border-radius:14px;}
+.set.bw,.set-hd.bw{grid-template-columns:16px minmax(0,1fr) 46px;}
+.set-hd{padding:0 4px 2px;font-size:10px;font-weight:800;color:var(--muted2);text-transform:uppercase;letter-spacing:.1em;text-align:center;}
+.set.ok{background:var(--green-soft);}
+.sn{font-size:12px;font-weight:800;color:var(--muted2);text-align:center;}
+.stp{display:flex;align-items:center;background:var(--s2);border-radius:12px;height:44px;min-width:0;}
+.stp button{width:30px;height:44px;font-size:20px;font-weight:700;color:var(--muted);flex-shrink:0;}
+.stp button:active{color:var(--accent);}
+.stp input{flex:1;width:100%;min-width:0;border:none;background:none;text-align:center;font-size:17px;font-weight:800;outline:none;-moz-appearance:textfield;appearance:textfield;}
+.stp input::-webkit-outer-spin-button,.stp input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+.chk{width:46px;height:44px;border-radius:13px;border:2px solid var(--s3);font-size:20px;font-weight:800;color:transparent;transition:.15s;}
+.set.ok .chk{background:var(--green);border-color:var(--green);color:#fff;}
+.chk:active{transform:scale(.94);}
+
+.btn{display:block;width:100%;padding:16px;border-radius:18px;background:var(--accent);color:#fff;font-size:16px;font-weight:800;margin-top:6px;}
+.btn:active{transform:scale(.98);}
+.btn.ghost{background:transparent;color:var(--muted);font-size:13px;padding:12px;margin-top:2px;}
+.rule{margin-top:14px;background:var(--surf);border:1px dashed var(--s3);border-radius:18px;padding:14px;font-size:12.5px;font-weight:600;color:var(--muted);line-height:1.6;}
+.rule b{color:var(--text);display:block;font-size:11px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;}
+
+/* ── Daily ── */
+.card{background:var(--surf);border:1px solid var(--border);border-radius:22px;box-shadow:var(--sh);padding:16px;margin-bottom:12px;}
+.lbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);}
+.dv{display:flex;align-items:baseline;gap:8px;margin:6px 0 10px;}
+.dv input{width:4ch;max-width:60%;border:none;background:none;font-size:34px;font-weight:800;letter-spacing:-.03em;outline:none;padding:0;-moz-appearance:textfield;appearance:textfield;}
+.dv input::-webkit-outer-spin-button,.dv input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+.dv span{font-size:13px;font-weight:700;color:var(--muted);}
+.dhint{font-size:12px;font-weight:600;color:var(--muted2);margin-top:4px;}
+.dstat{font-size:12.5px;font-weight:700;color:var(--muted);margin-top:8px;}
+.dstat.ok{color:var(--green);}
+.quick{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+.quick button{flex:1;min-width:64px;padding:11px 6px;border-radius:13px;background:var(--s2);font-size:14px;font-weight:800;}
+.quick button:active{background:var(--accent-soft);color:var(--accent);}
+.week{display:grid;grid-template-columns:62px repeat(7,minmax(0,1fr));gap:4px;font-size:11px;font-weight:700;text-align:center;align-items:center;}
+.week .rh{text-align:left;color:var(--muted);}
+.week .ch{color:var(--muted);}
+.week .ch.t{color:var(--accent);}
+.dot{width:22px;height:22px;border-radius:50%;margin:0 auto;background:var(--s2);}
+.dot.y{background:var(--green);}
+.dot.p{background:var(--yellow);opacity:.7;}
+
+/* ── History ── */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.stat{background:var(--surf);border:1px solid var(--border);border-radius:20px;padding:14px;}
+.stat b{display:block;font-size:26px;font-weight:800;letter-spacing:-.03em;}
+.stat span{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;}
+.hs{background:var(--surf);border:1px solid var(--border);border-radius:20px;margin-bottom:10px;overflow:hidden;}
+.hs-h{padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;}
+.hs-h b{display:block;font-size:15px;font-weight:800;}
+.hs-h small{font-size:12px;font-weight:600;color:var(--muted);}
+.hs-h span{font-size:12px;font-weight:800;color:var(--muted);white-space:nowrap;}
+.hs-b{display:none;padding:0 16px 14px;}
+.hs.open .hs-b{display:block;}
+.hs-row{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid var(--border);font-size:13px;}
+.hs-row b{font-weight:700;}
+.hs-row span{color:var(--muted);font-weight:600;text-align:right;}
+.del{margin-top:8px;font-size:12px;font-weight:800;color:var(--red);padding:6px 0;}
+.empty{text-align:center;color:var(--muted);font-weight:600;font-size:14px;padding:40px 20px;line-height:1.6;}
+
+/* ── Guide ── */
+.guide h3{font-size:15px;font-weight:800;margin-bottom:8px;letter-spacing:-.02em;}
+.guide ul{padding-left:18px;}
+.guide li{font-size:13.5px;font-weight:500;line-height:1.55;margin-bottom:7px;color:var(--text);}
+.guide li b{font-weight:800;}
+.guide p{font-size:13.5px;font-weight:500;line-height:1.55;margin-bottom:8px;}
+.sched{display:grid;grid-template-columns:auto repeat(3,1fr);gap:6px;text-align:center;font-size:13px;font-weight:700;align-items:center;}
+.sched .h{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);}
+.sched .r{text-align:left;color:var(--muted);font-size:12px;}
+.sched .p{background:var(--s2);border-radius:10px;padding:6px 0;font-weight:800;}
+
+/* ── Nav ── */
+nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surf);border-top:1px solid var(--border);padding-bottom:var(--sb);}
+nav .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);height:var(--nh);}
+nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:800;color:var(--muted2);}
+nav button i{font-style:normal;font-size:21px;filter:grayscale(1);opacity:.6;}
+nav button.on{color:var(--accent);}
+nav button.on i{filter:none;opacity:1;}
+
+/* ── Rest timer ── */
+#rest{position:fixed;left:12px;right:12px;bottom:calc(var(--nh) + var(--sb) + 10px);z-index:25;max-width:536px;margin:0 auto;background:var(--text);color:var(--bg);border-radius:20px;padding:10px 10px 10px 18px;display:none;align-items:center;gap:10px;box-shadow:0 10px 30px rgba(0,0,0,.25);}
+#rest.on{display:flex;}
+#rest.go{background:var(--green);color:#fff;}
+#rest .rt{flex:1;}
+#rest .rt small{display:block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;opacity:.6;}
+#rest .rt b{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;}
+#rest button{padding:10px 14px;border-radius:13px;background:rgba(128,128,128,.25);color:inherit;font-weight:800;font-size:13px;}
+
+/* ── Sheet ── */
+#sheet{position:fixed;inset:0;z-index:50;display:none;background:rgba(0,0,0,.45);align-items:flex-end;justify-content:center;}
+#sheet.on{display:flex;}
+.sh{background:var(--bg);width:100%;max-width:560px;border-radius:26px 26px 0 0;padding:18px 16px calc(24px + var(--sb));max-height:90vh;overflow-y:auto;}
+.sh h3{font-size:20px;font-weight:800;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;}
+.srow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 16px;background:var(--surf);border-radius:16px;margin-bottom:8px;font-size:14px;font-weight:700;}
+.srow small{display:block;font-size:11.5px;font-weight:600;color:var(--muted);margin-top:2px;}
+.seg{display:flex;background:var(--s2);border-radius:12px;padding:3px;flex-shrink:0;}
+.seg button{padding:7px 10px;border-radius:9px;font-size:12px;font-weight:800;color:var(--muted);}
+.seg button.on{background:var(--surf);color:var(--text);box-shadow:var(--sh);}
+.srow.act{width:100%;text-align:left;}
+.srow.danger{color:var(--red);}
+
+#toast{position:fixed;left:50%;top:calc(16px + var(--st));transform:translate(-50%,-150%);z-index:60;background:var(--text);color:var(--bg);padding:12px 18px;border-radius:14px;font-size:14px;font-weight:700;transition:transform .3s;max-width:90vw;text-align:center;}
+#toast.on{transform:translate(-50%,0);}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="h-title" id="hTitle">Train</div>
+    <div class="h-date" id="hDate"></div>
+  </div>
+  <button class="icon-btn" id="setBtn" aria-label="Settings">⚙️</button>
+</header>
+
+<main>
+  <!-- TRAIN -->
+  <section class="tab on" id="t-train">
+    <div id="restBanner"></div>
+    <div class="days" id="days"></div>
+    <div class="dayhead">
+      <h2 id="dayTitle"></h2>
+      <div class="prog"><div class="bar" id="dayBar"><i></i></div><span id="dayCount"></span></div>
+    </div>
+    <div id="exlist"></div>
+    <button class="btn" id="finishBtn">Finish workout</button>
+    <button class="btn ghost" id="resetBtn">Reset this workout</button>
+    <div class="rule"><b>Progression</b>Hit the top of the rep range on every set with clean form → the app adds the smallest weight step next time. End every set with 2–4 good reps still in the tank. No max lifts.</div>
+  </section>
+
+  <!-- DAILY -->
+  <section class="tab" id="t-daily">
+    <div id="dailyCards"></div>
+    <div class="card">
+      <div class="lbl" style="margin-bottom:12px">Last 7 days</div>
+      <div class="week" id="week"></div>
+    </div>
+  </section>
+
+  <!-- HISTORY -->
+  <section class="tab" id="t-hist">
+    <div class="stats">
+      <div class="stat"><b id="stWeek">0/3</b><span>This week</span></div>
+      <div class="stat"><b id="stTotal">0</b><span>Workouts total</span></div>
+    </div>
+    <div id="histList"></div>
+  </section>
+
+  <!-- GUIDE -->
+  <section class="tab guide" id="t-guide">
+    <div class="card">
+      <h3>The plan</h3>
+      <p>Beginner full body, 3 days a week, for the first 8–12 weeks. Alternate Day A and Day B with a rest day between workouts (e.g. Mon/Wed/Fri).</p>
+      <div class="sched">
+        <span></span><span class="h">Day 1</span><span class="h">Day 2</span><span class="h">Day 3</span>
+        <span class="r">Odd weeks</span><span class="p">A</span><span class="p">B</span><span class="p">A</span>
+        <span class="r">Even weeks</span><span class="p">B</span><span class="p">A</span><span class="p">B</span>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Phases (automatic)</h3>
+      <ul>
+        <li><b>Weeks 1–3:</b> 2 sets of everything. Learn the movements.</li>
+        <li><b>Week 4+:</b> 3 sets on the main lifts. Plank goes to 30–45 sec, dead bugs to 10 per side.</li>
+        <li><b>Week 5+:</b> Assisted pull-ups replace 1 set of lat pulldown. Assisted dips are added to Day B. Start with about 25 kg of assistance and use <b>less</b> as he gets stronger.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Choosing the weight</h3>
+      <ul>
+        <li><b>First session:</b> Start at the low end. Finish the reps with 2–4 still in the tank.</li>
+        <li><b>Too light:</b> More reps than the top of the range → go up next set.</li>
+        <li><b>Too heavy:</b> Form breaks or can't reach the lowest rep number → go down.</li>
+        <li><b>Machines differ by brand.</b> Same number can feel different. The app remembers what he used last time.</li>
+        <li><b>Leg press:</b> The sled is 20–40 kg on its own. The numbers are plates added on top.</li>
+        <li><b>Targets are rough, not deadlines.</b></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>How to train</h3>
+      <ul>
+        <li><b>Warm-up:</b> 5–10 min easy walk or bike, then 1 light set of the first exercise at about half the working weight.</li>
+        <li><b>Rest:</b> 1–2 min between sets, up to 3 if needed. The timer starts when you tick a set.</li>
+        <li><b>Technique first:</b> Have someone experienced check the squat and Romanian deadlift early on.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Food and recovery</h3>
+      <ul>
+        <li><b>Don't cut calories.</b> Healthy weight and still growing, so dieting holds him back.</li>
+        <li><b>Protein every meal,</b> about 80–100 g a day: eggs, chicken, fish, milk, yogurt, beans, tuna.</li>
+        <li><b>Three real meals.</b> Cut soda, sweets and junk, not meals.</li>
+        <li><b>Drink water,</b> especially on training days.</li>
+        <li><b>Sleep 8–9 hours.</b> That's when muscle gets built.</li>
+        <li><b>Stay active on rest days:</b> walking, basketball, biking, any sport.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>What to expect</h3>
+      <ul>
+        <li><b>Weeks 1–4:</b> Learning the movements. Strength goes up fast.</li>
+        <li><b>Months 2–3:</b> Clothes fit differently. Firmer and more defined.</li>
+        <li><b>Months 3–6:</b> Visible change.</li>
+        <li><b>After ~3 months</b> of steady progress, move to an upper/lower split.</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<div id="rest">
+  <div class="rt"><small id="restLbl">Rest</small><b id="restTime">1:30</b></div>
+  <button id="rest30">+30s</button>
+  <button id="restSkip">Skip</button>
+</div>
+
+<nav><div class="in">
+  <button class="on" data-tab="train"><i>🏋️</i>Train</button>
+  <button data-tab="daily"><i>🎯</i>Daily</button>
+  <button data-tab="hist"><i>📈</i>History</button>
+  <button data-tab="guide"><i>📖</i>Guide</button>
+</div></nav>
+
+<div id="sheet"><div class="sh">
+  <h3>Settings <button class="icon-btn" id="closeSheet" aria-label="Close">✕</button></h3>
+  <div class="srow">Theme<div class="seg" id="segTheme"><button data-v="light">Light</button><button data-v="dark">Dark</button></div></div>
+  <div class="srow">Rest timer<div class="seg" id="segRest"><button data-v="60">1:00</button><button data-v="90">1:30</button><button data-v="120">2:00</button><button data-v="180">3:00</button></div></div>
+  <div class="srow"><div>Program week<small id="startInfo"></small></div><div class="seg" id="segWeek"><button data-v="-1">−</button><button data-v="1">+</button></div></div>
+  <button class="srow act" id="exportBtn">Export backup <span>⬇️</span></button>
+  <button class="srow act" id="importBtn">Import backup <span>⬆️</span></button>
+  <button class="srow act danger" id="wipeBtn">Delete all data <span>🗑️</span></button>
+  <input type="file" id="importFile" accept="application/json,.json" hidden>
+</div></div>
+
+<div id="toast"></div>
+
+<script>
+// ─── Program ───────────────────────────────────────────────
+// s: [sets weeks 1–3, sets week 4+], s5: sets from week 5, r: reps, r4: reps from week 4,
+// kg: starting weight (null = bodyweight), tgt: rough week 8–12 target, inc: weight step,
+// note: shown after the weight, unit: 'sec' or '/side', from: first week it appears, assist: kg is assistance (less = harder)
+const DAYS = {
+  a:{short:'Day A',tag:'Full Body',title:'Day A · Full Body',ex:[
+    {n:'Goblet Squat',              s:[2,3], r:[8,12],  kg:6,  tgt:'14–20', inc:2,   note:'(1 DB)'},
+    {n:'Machine Chest Press',       s:[2,3], r:[8,12],  kg:10, tgt:'25–35', inc:2.5},
+    {n:'Lat Pulldown',              s:[2,3], s5:2, r:[8,12], kg:20, tgt:'30–40', inc:2.5},
+    {n:'Assisted Pull-ups',         s:[3,3], r:[3,6],   kg:25, tgt:'less assist', inc:5, assist:true, from:5},
+    {n:'DB Romanian Deadlift',      s:[2,2], r:[8,12],  kg:6,  tgt:'12–16', inc:2,   note:'per hand'},
+    {n:'DB Lateral Raise',          s:[2,2], r:[12,15], kg:2,  tgt:'4–6',   inc:1,   note:'per hand'},
+    {n:'Plank',                     s:[2,2], r:[20,40], r4:[30,45], kg:null, unit:'sec'},
+  ]},
+  b:{short:'Day B',tag:'Full Body',title:'Day B · Full Body',ex:[
+    {n:'Leg Press',                 s:[2,3], r:[10,12], kg:30, tgt:'70–100', inc:5,  note:'added'},
+    {n:'Incline DB Press',          s:[2,3], r:[8,12],  kg:5,  tgt:'10–14', inc:1,   note:'per hand'},
+    {n:'Seated Cable Row',          s:[2,3], r:[8,12],  kg:20, tgt:'30–40', inc:2.5},
+    {n:'Seated Leg Curl',           s:[2,2], r:[10,15], kg:10, tgt:'20–30', inc:2.5},
+    {n:'DB Hammer Curl',            s:[2,2], r:[10,15], kg:4,  tgt:'7–9',   inc:1,   note:'per hand'},
+    {n:'Cable Triceps Pushdown',    s:[2,2], r:[10,15], kg:10, tgt:'17.5–25', inc:2.5},
+    {n:'Assisted Dips',             s:[2,2], r:[6,10],  kg:25, tgt:'less assist', inc:5, assist:true, from:5},
+    {n:'Calf Raise',                s:[2,2], r:[12,15], kg:10, tgt:'30–50', inc:5,   note:'machine (or bodyweight)'},
+    {n:'Dead Bugs',                 s:[2,2], r:[8,8],   r4:[10,10], kg:null, unit:'/side'},
+  ]},
+};
+const DAY_KEYS = Object.keys(DAYS);
+const TRAIN_DOWS = [1,3,5]; // Mon / Wed / Fri
+
+function planFor(day){
+  const wk = programWeek();
+  return DAYS[day].ex.filter(e=>!e.from || wk>=e.from).map(e=>{
+    const sets = (e.s5 && wk>=5) ? e.s5 : e.s[wk>=4?1:0];
+    const r = (e.r4 && wk>=4) ? e.r4 : e.r;
+    return Object.assign({}, e, {sets, lo:r[0], hi:r[1]});
+  });
+}
+
+const TARGETS = [
+  {k:'protein',lbl:'Protein', unit:'g',     lo:80, hi:100, quick:[10,20,30], hint:'Eggs, chicken, fish, milk, yogurt, tuna'},
+  {k:'meals',  lbl:'Meals',   unit:'meals', lo:3,  hi:null, quick:[1],       hint:'Three real meals. Cut soda and junk, not meals.'},
+  {k:'sleep',  lbl:'Sleep',   unit:'hours', lo:8,  hi:9,   quick:[0.5,1],    hint:'Last night', dec:true},
+];
+
+// ─── Storage (own prefix so it never mixes with another app) ─
+const LS = {
+  get(k,d){ try{ const v=localStorage.getItem('gymstarter_'+k); return v?JSON.parse(v):d; }catch(e){ return d; } },
+  set(k,v){ try{ localStorage.setItem('gymstarter_'+k,JSON.stringify(v)); }catch(e){} },
+};
+let history = LS.get('history',[]);   // [{id,date,day,ex:[{n,sets:[{kg,reps}]}]}]
+let drafts  = LS.get('drafts',{});    // {day:{wk,ex:[[{kg,reps,done}]]}}
+let daily   = LS.get('daily',{});     // {'YYYY-MM-DD':{protein,meals,sleep}}
+let settings= Object.assign({rest:90,theme:null,start:null}, LS.get('settings',{}));
+const saveHistory=()=>LS.set('history',history);
+const saveDrafts =()=>LS.set('drafts',drafts);
+const saveDaily  =()=>LS.set('daily',daily);
+const saveSettings=()=>LS.set('settings',settings);
+
+// ─── Helpers ───────────────────────────────────────────────
+const $ = s=>document.querySelector(s);
+const pad = n=>String(n).padStart(2,'0');
+const dkey = d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const todayKey = ()=>dkey(new Date());
+const fromKey = k=>{ const [y,m,d]=k.split('-').map(Number); return new Date(y,m-1,d); };
+const fmtKg = n=>n==null?'':String(Math.round(n*100)/100);
+const fmtNum = n=>Number(n||0).toLocaleString('en-US',{maximumFractionDigits:1});
+const esc = s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function weekStartKey(){ const d=new Date(); const off=(d.getDay()+6)%7; d.setDate(d.getDate()-off); return dkey(d); }
+function niceDate(k){ return fromKey(k).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}); }
+function daysBetween(a,b){ return Math.round((fromKey(b)-fromKey(a))/86400000); }
+
+// Program week counts from the first logged workout (or a manually set start).
+function programStart(){ return settings.start || (history.length ? history.reduce((m,h)=>h.date<m?h.date:m, history[0].date) : todayKey()); }
+function programWeek(){ return Math.max(1, Math.floor(daysBetween(programStart(), todayKey())/7)+1); }
+
+let toastT;
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'),2200); }
+
+// ─── Theme ─────────────────────────────────────────────────
+function applyTheme(){
+  const dark = settings.theme ? settings.theme==='dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  document.body.classList.toggle('dark',dark);
+  document.querySelector('meta[name=theme-color]').content = dark ? '#0C0C0F' : '#F4F4F6';
+}
+
+// ─── Workout logic ─────────────────────────────────────────
+function lastSession(name){
+  for(let i=history.length-1;i>=0;i--){
+    const e=history[i].ex.find(x=>x.n===name);
+    if(e && e.sets.length) return {date:history[i].date,sets:e.sets};
+  }
+  return null;
+}
+function earnedProgress(ex,last){
+  return !!last && last.sets.length>=ex.sets && last.sets.every(s=>(+s.reps||0)>=ex.hi);
+}
+function startKg(e,ls,up){
+  if(e.kg==null) return null;
+  if(e.assist){
+    // Assistance: less is harder, so progress means going down.
+    let kg = ls && ls.kg!=null ? +ls.kg : e.kg;
+    return up ? Math.max(0, kg - e.inc) : kg;
+  }
+  let kg = Math.max(e.kg, ls && ls.kg!=null ? +ls.kg : 0);
+  return up ? kg + e.inc : kg;
+}
+function freshDraft(day){
+  return { wk: programWeek(), ex: planFor(day).map(e=>{
+    const last=lastSession(e.n), up=earnedProgress(e,last);
+    return Array.from({length:e.sets},(_,j)=>{
+      const ls = last && (last.sets[j] || last.sets[last.sets.length-1]);
+      const reps = up ? e.lo : (ls ? Math.min(+ls.reps, e.hi) : e.lo);
+      return {kg:startKg(e,ls,up),reps,done:false};
+    });
+  })};
+}
+// Drafts are only persisted once you touch something, so browsing never goes stale.
+const tmpDrafts = {};
+function getDraft(day){
+  const plan=planFor(day);
+  const d=drafts[day];
+  if(d && d.ex.length===plan.length && d.ex.every((s,i)=>s.length===plan[i].sets)) return d;
+  if(d){ delete drafts[day]; saveDrafts(); }
+  const t=tmpDrafts[day];
+  if(t && t.wk===programWeek()) return t;
+  return (tmpDrafts[day]=freshDraft(day));
+}
+function clearTmp(){ Object.keys(tmpDrafts).forEach(k=>delete tmpDrafts[k]); }
+function touchDraft(day){ drafts[day]=getDraft(day); delete tmpDrafts[day]; saveDrafts(); }
+function doneThisWeek(day){ const ws=weekStartKey(); return history.some(h=>h.day===day && h.date>=ws); }
+function trainedToday(){ const t=todayKey(); return history.some(h=>h.date===t); }
+
+// Next workout = whichever day he didn't do last.
+function nextDay(){
+  if(!history.length) return 'a';
+  return history[history.length-1].day==='a' ? 'b' : 'a';
+}
+let curDay = nextDay();
+const openCards = new Set();
+
+// ─── Train rendering ───────────────────────────────────────
+function phaseText(wk){
+  if(wk===4) return '📈 <b>Week 4:</b> main lifts are now 3 sets.';
+  if(wk===5) return '🆕 <b>Week 5:</b> assisted pull-ups and dips added.';
+  return '';
+}
+function renderDays(){
+  const nd=nextDay();
+  $('#days').innerHTML = DAY_KEYS.map(k=>{
+    const p=DAYS[k];
+    return `<button class="day${k===curDay?' on':''}" data-day="${k}">
+      ${k===nd && !trainedToday()?'<span class="next">Next</span>':''}
+      <b>${p.short}</b><small>${p.tag}</small>
+      ${doneThisWeek(k)?'<span class="tick">✓</span>':''}
+    </button>`;
+  }).join('');
+  const wk=programWeek(), dow=new Date().getDay();
+  let html='';
+  if(trainedToday()) html=`<div class="banner">✅ <b>Done for today.</b> Next time: <b>${esc(DAYS[nd].title)}</b>. Eat protein and sleep 8–9 hours.</div>`;
+  else if(!TRAIN_DOWS.includes(dow)) html=`<div class="banner">😌 <b>Rest day.</b> Walk or play a sport. Next up: <b>${esc(DAYS[nd].title)}</b>.</div>`;
+  const ph=phaseText(wk);
+  if(ph) html+=`<div class="banner phase">${ph}</div>`;
+  $('#restBanner').innerHTML = html;
+}
+
+function repsLabel(e){ return e.unit==='sec' ? 'sec' : 'reps'; }
+function setRow(e,s,j){
+  const bw = e.kg==null;
+  const kgCell = bw ? '' : `<div class="stp"><button data-a="kg" data-d="-1" aria-label="less weight">−</button>
+      <input data-f="kg" type="number" inputmode="decimal" step="0.5" min="0" value="${fmtKg(s.kg)}" aria-label="kg">
+      <button data-a="kg" data-d="1" aria-label="more weight">+</button></div>`;
+  return `<div class="set${bw?' bw':''}${s.done?' ok':''}" data-s="${j}">
+    <span class="sn">${j+1}</span>
+    ${kgCell}
+    <div class="stp"><button data-a="reps" data-d="-1" aria-label="fewer ${repsLabel(e)}">−</button>
+      <input data-f="reps" type="number" inputmode="numeric" min="0" value="${s.reps??''}" aria-label="${repsLabel(e)}">
+      <button data-a="reps" data-d="1" aria-label="more ${repsLabel(e)}">+</button></div>
+    <button class="chk" data-a="done" aria-label="set done">✓</button>
+  </div>`;
+}
+
+function renderExercise(i){
+  const plan=planFor(curDay), e=plan[i], d=getDraft(curDay), sets=d.ex[i];
+  const last=lastSession(e.n), up=earnedProgress(e,last);
+  const nDone=sets.filter(s=>s.done).length, all=nDone===sets.length;
+  const range = e.lo===e.hi ? `${e.lo}` : `${e.lo}–${e.hi}`;
+  const unit = e.unit==='sec' ? ' sec' : (e.unit||'');
+  const load = e.kg==null ? 'bodyweight' : e.assist ? `start ${e.kg} kg assist` : `start ${e.kg} kg${e.note?' '+e.note:''}`;
+  const meta = `${e.sets} × ${range}${unit} · ${load}`;
+  const tgt = e.kg==null ? '' : e.assist ? 'Use less assistance as he gets stronger' : `Target wk 8–12: ${e.tgt} kg · +${fmtKg(e.inc)} kg steps`;
+  const fmtSet = s=> e.kg==null ? `${s.reps}${e.unit==='sec'?'s':''}` : `${fmtKg(s.kg)}×${s.reps}`;
+  const lastTxt = last ? `Last (${niceDate(last.date)}): ` + last.sets.map(fmtSet).join(', ') : 'First time · start light and learn the form';
+  const upTxt = !up ? '' : e.kg==null ? '🔥 Top of range last time · keep it strict' :
+    e.assist ? `⬇️ −${fmtKg(e.inc)} kg assist · you earned it` : `⬆️ +${fmtKg(e.inc)} kg · you earned it last time`;
+  return `<div class="ex${all?' done':''}${openCards.has(i)?' open':''}" data-i="${i}">
+    <div class="exh" data-a="toggle">
+      <div class="exh-main">
+        <div class="exn">${esc(e.n)}</div>
+        <div class="exm">${esc(meta)}</div>
+        ${tgt?`<div class="extgt">${esc(tgt)}</div>`:''}
+        <div class="exlast">${esc(lastTxt)}</div>
+        ${upTxt&&!all?`<span class="up">${esc(upTxt)}</span>`:''}
+      </div>
+      <span class="exc">${all?'✓ Done':`${nDone}/${sets.length}`}</span>
+    </div>
+    <div class="sets"><div class="set-hd${e.kg==null?' bw':''}"><span></span>${e.kg==null?'':`<span>${e.assist?'assist kg':'kg'}</span>`}<span>${repsLabel(e)}</span><span></span></div>${sets.map((s,j)=>setRow(e,s,j)).join('')}</div>
+  </div>`;
+}
+
+function renderProgress(){
+  const d=getDraft(curDay);
+  const total=d.ex.reduce((a,s)=>a+s.length,0), done=d.ex.reduce((a,s)=>a+s.filter(x=>x.done).length,0);
+  $('#dayBar i').style.width = (total?done/total*100:0)+'%';
+  $('#dayBar').classList.toggle('ok',total>0 && done===total);
+  $('#dayCount').textContent = `${done}/${total} sets`;
+}
+
+function renderTrain(){
+  renderDays();
+  $('#dayTitle').textContent = DAYS[curDay].title;
+  $('#exlist').innerHTML = planFor(curDay).map((_,i)=>renderExercise(i)).join('');
+  renderProgress();
+}
+
+function rerenderCard(i){
+  const el=document.querySelector(`.ex[data-i="${i}"]`);
+  if(el) el.outerHTML = renderExercise(i);
+  renderProgress();
+}
+
+$('#days').addEventListener('click',ev=>{
+  const b=ev.target.closest('[data-day]'); if(!b) return;
+  curDay=b.dataset.day; openCards.clear(); renderTrain(); window.scrollTo({top:0});
+});
+
+$('#exlist').addEventListener('click',ev=>{
+  const btn=ev.target.closest('[data-a]'); if(!btn) return;
+  const card=btn.closest('.ex'), i=+card.dataset.i;
+  const a=btn.dataset.a;
+  if(a==='toggle'){
+    if(!card.classList.contains('done')) return;
+    openCards.has(i)?openCards.delete(i):openCards.add(i);
+    card.classList.toggle('open');
+    return;
+  }
+  const row=btn.closest('.set'); if(!row) return;
+  const j=+row.dataset.s, e=planFor(curDay)[i];
+  touchDraft(curDay);
+  const s=drafts[curDay].ex[i][j];
+  if(a==='kg' || a==='reps'){
+    const step = a==='kg' ? e.inc : (e.unit==='sec' ? 5 : 1);
+    const v = Math.max(0, Math.round(((+s[a]||0) + step*(+btn.dataset.d))*100)/100);
+    s[a]=v; row.querySelector(`[data-f="${a}"]`).value = a==='kg'?fmtKg(v):v;
+    saveDrafts();
+  } else if(a==='done'){
+    s.done=!s.done; saveDrafts();
+    if(s.done){
+      if(navigator.vibrate) navigator.vibrate(30);
+      const d=drafts[curDay], lastSet = d.ex.every(x=>x.every(y=>y.done));
+      if(!lastSet) startRest();
+      else { stopRest(); toast('All sets done · hit Finish 💪'); }
+      keepAwake();
+    }
+    openCards.delete(i);
+    rerenderCard(i);
+  }
+});
+
+$('#exlist').addEventListener('change',ev=>{
+  const inp=ev.target.closest('input[data-f]'); if(!inp) return;
+  const i=+inp.closest('.ex').dataset.i, j=+inp.closest('.set').dataset.s, f=inp.dataset.f;
+  touchDraft(curDay);
+  const v=parseFloat(inp.value);
+  drafts[curDay].ex[i][j][f] = isNaN(v)?0:Math.max(0,Math.round(v*100)/100);
+  inp.value = drafts[curDay].ex[i][j][f];
+  saveDrafts();
+});
+$('#exlist').addEventListener('focusin',ev=>{ if(ev.target.matches('input')) ev.target.select(); });
+
+$('#finishBtn').addEventListener('click',()=>{
+  const d=getDraft(curDay), plan=planFor(curDay), dayName=DAYS[curDay].short;
+  const ex=plan.map((e,i)=>({n:e.n,sets:d.ex[i].filter(s=>s.done).map(s=>({kg:s.kg,reps:+s.reps||0}))})).filter(x=>x.sets.length);
+  if(!ex.length){ toast('Tick off at least one set first'); return; }
+  const left=d.ex.reduce((a,s)=>a+s.filter(x=>!x.done).length,0);
+  if(left && !confirm(`${left} set${left>1?'s':''} not ticked. Finish anyway?`)) return;
+  history.push({id:Date.now(),date:todayKey(),day:curDay,ex});
+  saveHistory();
+  delete drafts[curDay]; saveDrafts(); clearTmp();
+  stopRest(); openCards.clear();
+  curDay = nextDay();
+  renderTrain(); renderHistory();
+  window.scrollTo({top:0,behavior:'smooth'});
+  toast(`${dayName} saved 💪`);
+});
+
+$('#resetBtn').addEventListener('click',()=>{
+  if(!confirm('Clear everything logged for this workout?')) return;
+  delete drafts[curDay]; delete tmpDrafts[curDay]; saveDrafts();
+  stopRest(); openCards.clear(); renderTrain();
+});
+
+// ─── Rest timer ────────────────────────────────────────────
+let restEnd=0, restIv=null, audioCtx=null;
+function beep(){
+  try{
+    audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
+    [0,.25].forEach(t=>{
+      const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+      o.frequency.value=880; o.connect(g); g.connect(audioCtx.destination);
+      g.gain.setValueAtTime(.25,audioCtx.currentTime+t); g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+t+.2);
+      o.start(audioCtx.currentTime+t); o.stop(audioCtx.currentTime+t+.2);
+    });
+  }catch(e){}
+}
+function startRest(){
+  try{ audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)(); audioCtx.resume(); }catch(e){}
+  restEnd=Date.now()+settings.rest*1000;
+  $('#rest').classList.remove('go'); $('#rest').classList.add('on');
+  $('#restLbl').textContent='Rest';
+  clearInterval(restIv); restIv=setInterval(tickRest,250); tickRest();
+}
+function tickRest(){
+  const left=Math.ceil((restEnd-Date.now())/1000);
+  if(left<=0){
+    clearInterval(restIv); restIv=null;
+    $('#restLbl').textContent='Rest over'; $('#restTime').textContent='Go! 💪';
+    $('#rest').classList.add('go');
+    if(navigator.vibrate) navigator.vibrate([200,100,200]);
+    beep();
+    setTimeout(()=>{ if(!restIv) stopRest(); },4000);
+    return;
+  }
+  $('#restTime').textContent=`${Math.floor(left/60)}:${pad(left%60)}`;
+}
+function stopRest(){ clearInterval(restIv); restIv=null; $('#rest').classList.remove('on','go'); }
+$('#rest30').addEventListener('click',()=>{
+  if(!restIv){ restEnd=Date.now(); restIv=setInterval(tickRest,250); $('#rest').classList.remove('go'); $('#restLbl').textContent='Rest'; }
+  restEnd+=30000; tickRest();
+});
+$('#restSkip').addEventListener('click',stopRest);
+
+let wakeLock=null;
+async function keepAwake(){
+  try{ if('wakeLock' in navigator && !wakeLock){ wakeLock=await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release',()=>wakeLock=null); } }catch(e){}
+}
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'){
+    if(Object.keys(drafts).length) keepAwake();
+    if(restIv) tickRest();
+    renderHeader();
+    if(curTab==='train') renderTrain();
+    if(curTab==='daily') renderDaily();
+  }
+});
+
+// ─── Daily targets ─────────────────────────────────────────
+function dayData(k){ return daily[k] || {protein:0,meals:0,sleep:0}; }
+function status(t,v){
+  if(v>=t.lo) return {c:'ok',txt:'Target hit ✓'};
+  return {c:'',txt:`${fmtNum(t.lo-v)} ${t.unit} to go`};
+}
+function renderDaily(){
+  const k=todayKey(), dd=dayData(k);
+  $('#dailyCards').innerHTML = TARGETS.map(t=>{
+    const v=dd[t.k]||0, max=t.hi||t.lo, st=status(t,v);
+    const pct=Math.min(100,v/max*100);
+    return `<div class="card" data-t="${t.k}">
+      <div class="lbl">${t.lbl}</div>
+      <div class="dv"><input type="number" inputmode="${t.dec?'decimal':'numeric'}" step="${t.dec?'0.5':'1'}" min="0" value="${v||''}" placeholder="0" data-t="${t.k}" style="width:${Math.max(2,String(v).length)+.6}ch">
+        <span>/ ${fmtNum(t.lo)}${t.hi?'–'+fmtNum(t.hi):''} ${t.unit}</span></div>
+      <div class="bar${st.c==='ok'?' ok':''}"><i style="width:${pct}%"></i></div>
+      <div class="dstat ${st.c}">${st.txt}</div>
+      <div class="dhint">${esc(t.hint)}</div>
+      <div class="quick">${t.quick.map(q=>`<button data-t="${t.k}" data-q="${q}">+${fmtNum(q)}</button>`).join('')}<button data-t="${t.k}" data-q="reset" aria-label="reset">↺</button></div>
+    </div>`;
+  }).join('');
+  renderWeek();
+}
+function renderWeek(){
+  const days=[]; for(let i=6;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); days.push(d); }
+  const tk=todayKey();
+  let h='<div></div>'+days.map(d=>`<div class="ch${dkey(d)===tk?' t':''}">${d.toLocaleDateString('en-GB',{weekday:'narrow'})}</div>`).join('');
+  const rows=[...TARGETS.map(t=>({lbl:t.lbl,f:k=>{ const v=dayData(k)[t.k]||0; return v>=t.lo ? 'y' : v>0 ? 'p' : ''; }})),
+              {lbl:'Workout',f:k=>history.some(x=>x.date===k)?'y':''}];
+  rows.forEach(r=>{ h+=`<div class="rh">${r.lbl}</div>`+days.map(d=>`<div><div class="dot ${r.f(dkey(d))}"></div></div>`).join(''); });
+  $('#week').innerHTML=h;
+}
+function setDaily(t,v){
+  const k=todayKey(); daily[k]=Object.assign(dayData(k),{[t]:Math.max(0,Math.round(v*10)/10)}); saveDaily();
+}
+$('#dailyCards').addEventListener('click',ev=>{
+  const b=ev.target.closest('[data-q]'); if(!b) return;
+  const t=b.dataset.t;
+  setDaily(t, b.dataset.q==='reset' ? 0 : (dayData(todayKey())[t]||0)+(+b.dataset.q));
+  renderDaily();
+});
+$('#dailyCards').addEventListener('change',ev=>{
+  const inp=ev.target.closest('input[data-t]'); if(!inp) return;
+  setDaily(inp.dataset.t,parseFloat(inp.value)||0); renderDaily();
+});
+$('#dailyCards').addEventListener('focusin',ev=>{ if(ev.target.matches('input')) ev.target.select(); });
+
+// ─── History ───────────────────────────────────────────────
+function renderHistory(){
+  const ws=weekStartKey();
+  $('#stWeek').textContent = `${history.filter(h=>h.date>=ws).length}/3`;
+  $('#stTotal').textContent = history.length;
+  if(!history.length){ $('#histList').innerHTML='<div class="empty">No workouts yet.<br>Log the first session on the Train tab.</div>'; return; }
+  $('#histList').innerHTML = history.slice().reverse().map(h=>{
+    const p=DAYS[h.day]||{title:h.day};
+    const nSets=h.ex.reduce((a,e)=>a+e.sets.length,0);
+    return `<div class="hs" data-id="${h.id}">
+      <button class="hs-h" data-a="open"><div><b>${esc(p.title)}</b><small>${niceDate(h.date)}${h.date>=ws?' · this week':''}</small></div>
+        <span>${nSets} sets</span></button>
+      <div class="hs-b">
+        ${h.ex.map(e=>`<div class="hs-row"><b>${esc(e.n)}</b><span>${e.sets.map(s=>s.kg==null?`${s.reps}`:`${fmtKg(s.kg)}×${s.reps}`).join(', ')}</span></div>`).join('')}
+        <button class="del" data-a="del">Delete workout</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+$('#histList').addEventListener('click',ev=>{
+  const b=ev.target.closest('[data-a]'); if(!b) return;
+  const card=b.closest('.hs');
+  if(b.dataset.a==='open') card.classList.toggle('open');
+  if(b.dataset.a==='del' && confirm('Delete this workout?')){
+    history=history.filter(h=>h.id!==+card.dataset.id); saveHistory();
+    clearTmp(); renderHistory(); renderTrain();
+  }
+});
+
+// ─── Tabs / header ─────────────────────────────────────────
+const TITLES={train:'Train',daily:'Daily',hist:'History',guide:'Guide'};
+let curTab='train';
+function renderHeader(){
+  $('#hTitle').textContent=TITLES[curTab];
+  $('#hDate').textContent=`Week ${programWeek()} · `+new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
+}
+document.querySelector('nav').addEventListener('click',ev=>{
+  const b=ev.target.closest('[data-tab]'); if(!b) return;
+  curTab=b.dataset.tab;
+  document.querySelectorAll('nav [data-tab]').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x.id==='t-'+curTab));
+  if(curTab==='daily') renderDaily();
+  if(curTab==='hist') renderHistory();
+  if(curTab==='train') renderTrain();
+  renderHeader(); window.scrollTo({top:0});
+});
+
+// ─── Settings ──────────────────────────────────────────────
+function renderSettings(){
+  const dark=document.body.classList.contains('dark');
+  $('#segTheme').querySelectorAll('button').forEach(b=>b.classList.toggle('on',(b.dataset.v==='dark')===dark));
+  $('#segRest').querySelectorAll('button').forEach(b=>b.classList.toggle('on',+b.dataset.v===settings.rest));
+  $('#startInfo').textContent=`Week ${programWeek()} · started ${niceDate(programStart())}`;
+}
+$('#setBtn').addEventListener('click',()=>{ renderSettings(); $('#sheet').classList.add('on'); });
+$('#closeSheet').addEventListener('click',()=>$('#sheet').classList.remove('on'));
+$('#sheet').addEventListener('click',ev=>{ if(ev.target.id==='sheet') $('#sheet').classList.remove('on'); });
+$('#segTheme').addEventListener('click',ev=>{ const b=ev.target.closest('[data-v]'); if(!b) return; settings.theme=b.dataset.v; saveSettings(); applyTheme(); renderSettings(); });
+$('#segRest').addEventListener('click',ev=>{ const b=ev.target.closest('[data-v]'); if(!b) return; settings.rest=+b.dataset.v; saveSettings(); renderSettings(); });
+// Shift the program start a week at a time (e.g. if he skipped a week or already trained before).
+$('#segWeek').addEventListener('click',ev=>{
+  const b=ev.target.closest('[data-v]'); if(!b) return;
+  const wk=programWeek(), dir=+b.dataset.v;
+  if(dir<0 && wk<=1) return;
+  const d=fromKey(programStart()); d.setDate(d.getDate()-7*dir);
+  settings.start=dkey(d); saveSettings(); clearTmp();
+  renderSettings(); renderHeader(); renderTrain();
+});
+$('#exportBtn').addEventListener('click',()=>{
+  const blob=new Blob([JSON.stringify({app:'gym-starter',v:1,history,daily,settings,drafts},null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`gym-starter-backup-${todayKey()}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+});
+$('#importBtn').addEventListener('click',()=>$('#importFile').click());
+$('#importFile').addEventListener('change',async ev=>{
+  const f=ev.target.files[0]; if(!f) return;
+  try{
+    const d=JSON.parse(await f.text());
+    if(d.app!=='gym-starter' || !Array.isArray(d.history)) throw 0;
+    if(!confirm(`Replace current data with backup (${d.history.length} workouts)?`)){ ev.target.value=''; return; }
+    history=d.history; daily=d.daily||{}; drafts=d.drafts||{}; settings=Object.assign(settings,d.settings||{});
+    saveHistory(); saveDaily(); saveDrafts(); saveSettings();
+    clearTmp(); curDay=nextDay();
+    applyTheme(); renderAll(); renderSettings(); toast('Backup restored');
+  }catch(e){ toast('That file is not a Gym Starter backup'); }
+  ev.target.value='';
+});
+$('#wipeBtn').addEventListener('click',()=>{
+  if(!confirm('Delete ALL workouts and daily logs? This cannot be undone.')) return;
+  history=[]; drafts={}; daily={}; settings.start=null;
+  saveHistory(); saveDrafts(); saveDaily(); saveSettings();
+  clearTmp(); curDay=nextDay();
+  renderAll(); $('#sheet').classList.remove('on'); toast('All data deleted');
+});
+
+// No zooming: block pinch (iOS ignores user-scalable=no). Double-tap zoom is off via touch-action.
+['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
+document.addEventListener('touchmove',e=>{ if(e.touches.length>1) e.preventDefault(); },{passive:false});
+
+function renderAll(){ renderHeader(); renderTrain(); renderDaily(); renderHistory(); }
+applyTheme();
+const mq=matchMedia('(prefers-color-scheme: dark)');
+if(mq.addEventListener) mq.addEventListener('change',()=>{ if(!settings.theme) applyTheme(); });
+renderAll();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>
